@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>灶间小馆 · 点菜</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b8342a'/%3E%3Cpath d='M7 19c0-5 4-9 9-9s9 4 9 9' stroke='%23f6f1e6' stroke-width='2.4' fill='none'/%3E%3Cpath d='M5 22h22' stroke='%23f6f1e6' stroke-width='2.4'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#f6f1e6;
+    --paper-2:#efe7d7;
+    --card:#fffdf8;
+    --ink:#241f1a;
+    --ink-soft:#4a423a;
+    --muted:#8b7f70;
+    --line:#e0d5c2;
+    --red:#b8342a;
+    --red-soft:#f2e2dd;
+    --gold:#a97c2f;
+    --shadow:0 1px 2px rgba(54,40,24,.05), 0 10px 24px -18px rgba(54,40,24,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 88% -8%, #fbf6ec 0%, rgba(251,246,236,0) 60%),
+      radial-gradient(900px 500px at -10% 100%, #efe6d4 0%, rgba(239,230,212,0) 55%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei UI","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;line-height:1.6;
+    min-height:100vh;
+  }
+  .serif{font-family:"Songti SC","STSong","Noto Serif SC","SimSun",serif;}
+
+  /* ---------- 顶部 ---------- */
+  header{
+    position:sticky;top:0;z-index:30;
+    background:rgba(246,241,230,.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{
+    max-width:1180px;margin:0 auto;padding:14px 20px;
+    display:flex;align-items:center;gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .brand svg{flex:0 0 auto}
+  .brand .name{font-size:22px;letter-spacing:.16em;font-weight:600;white-space:nowrap}
+  .brand .sub{font-size:11.5px;color:var(--muted);letter-spacing:.18em;margin-top:1px}
+  .bar-spacer{flex:1;min-width:0}
+  .table-chip{
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);background:var(--card);
+    padding:7px 12px;border-radius:999px;font-size:13px;white-space:nowrap;
+  }
+  .table-chip b{color:var(--red);font-weight:600;letter-spacing:.06em}
+  .cart-btn{
+    position:relative;display:flex;align-items:center;gap:8px;
+    background:var(--ink);color:#f9f4ea;border:0;border-radius:999px;
+    padding:9px 16px;font-size:14px;cursor:pointer;font-family:inherit;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .cart-btn:hover{background:#3a3128;transform:translateY(-1px)}
+  .cart-btn .badge{
+    display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;
+    background:var(--red);color:#fff;border-radius:999px;font-size:11.5px;font-weight:600;
+  }
+
+  /* ---------- 副信息条 ---------- */
+  .notice{
+    max-width:1180px;margin:0 auto;padding:0 20px;
+  }
+  .notice-in{
+    display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;
+    font-size:12.5px;color:var(--muted);
+    border-bottom:1px dashed var(--line);padding:11px 0 13px;
+  }
+  .notice-in span{display:flex;align-items:center;gap:6px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);display:inline-block}
+
+  /* ---------- 主体三栏 ---------- */
+  .shell{
+    max-width:1180px;margin:0 auto;padding:22px 20px 40px;
+    display:grid;grid-template-columns:152px minmax(0,1fr) 336px;gap:26px;
+    align-items:start;
+  }
+
+  /* 左侧分类 */
+  .rail{position:sticky;top:96px;display:flex;flex-direction:column;gap:2px}
+  .rail h3{
+    font-size:11.5px;letter-spacing:.22em;color:var(--muted);
+    margin:0 0 8px 10px;font-weight:500;
+  }
+  .cat{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;
+    background:transparent;color:var(--ink-soft);font-size:14px;font-family:inherit;
+    text-align:left;transition:all .16s ease;
+  }
+  .cat:hover{background:var(--paper-2)}
+  .cat.on{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
+  .cat .n{font-size:11.5px;color:var(--muted);font-weight:400}
+  .cat.on .n{color:var(--red)}
+
+  /* 中间菜品 */
+  .content{min-width:0}
+  .content-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+    margin-bottom:16px;flex-wrap:wrap;
+  }
+  .content-head .h{
+    font-size:26px;letter-spacing:.04em;font-weight:600;line-height:1.2;
+  }
+  .content-head .h em{
+    font-style:normal;font-size:12px;letter-spacing:.2em;color:var(--muted);
+    display:block;margin-top:6px;font-weight:400;
+  }
+  .search{
+    display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--line);border-radius:8px;padding:0 12px;height:38px;min-width:206px;
+  }
+  .search input{
+    border:0;background:transparent;outline:none;font-family:inherit;font-size:14px;
+    color:var(--ink);width:100%;padding:0;
+  }
+  .search input::placeholder{color:#b4a898}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .dish{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:15px 16px 13px;display:flex;flex-direction:column;
+    transition:box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+    position:relative;overflow:hidden;
+  }
+  .dish:hover{box-shadow:0 14px 28px -22px rgba(54,40,24,.6);transform:translateY(-2px);border-color:#cfc1a9}
+  .dish.in-cart{border-color:var(--red);background:#fffaf6}
+  .dish-top{display:flex;gap:11px;align-items:flex-start}
+  .thumb{
+    flex:0 0 46px;width:46px;height:46px;border-radius:10px;
+    display:grid;place-items:center;border:1px solid var(--line);
+    background:var(--paper-2);
+  }
+  .dish-name{font-size:16.5px;font-weight:600;letter-spacing:.03em;line-height:1.3}
+  .dish-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .tag{
+    font-size:11px;padding:1px 7px;border-radius:4px;line-height:1.7;
+    border:1px solid var(--line);color:var(--muted);background:transparent;
+  }
+  .tag.hot{color:var(--red);border-color:#e8c6bf;background:var(--red-soft)}
+  .tag.veg{color:#4f6b46;border-color:#cdd9c6;background:#edf2e9}
+  .dish-desc{margin-top:10px;font-size:12.8px;color:var(--muted);line-height:1.55;min-height:38px}
+  .dish-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+  .price{font-family:"Songti SC","STSong","SimSun",serif;color:var(--red);font-size:20px;font-weight:600}
+  .price small{font-size:12px;margin-right:1px}
+  .price i{font-style:normal;font-size:11.5px;color:var(--muted);font-family:inherit;margin-left:4px}
+  .act{display:flex;align-items:center;gap:8px}
+  .qty{
+    display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden;height:30px;background:var(--paper)
+  }
+  .qty button{
+    width:28px;height:28px;border:0;background:transparent;cursor:pointer;color:var(--ink);
+    font-size:16px;line-height:1;font-family:inherit;display:grid;place-items:center;
+  }
+  .qty button:hover{background:var(--paper-2)}
+  .qty span{min-width:22px;text-align:center;font-size:13.5px;font-weight:600}
+  .add{
+    height:30px;padding:0 13px;border-radius:999px;border:1px solid var(--red);
+    background:transparent;color:var(--red);font-size:13px;cursor:pointer;font-family:inherit;
+    transition:all .16s ease;white-space:nowrap;
+  }
+  .add:hover{background:var(--red);color:#fff}
+  .empty{
+    grid-column:1/-1;text-align:center;color:var(--muted);padding:52px 0;font-size:14px;
+    border:1px dashed var(--line);border-radius:12px;
+  }
+
+  /* 右侧购物车 */
+  .cart{
+    position:sticky;top:96px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow);overflow:hidden;
+    display:flex;flex-direction:column;max-height:calc(100vh - 120px);
+  }
+  .cart-head{
+    padding:15px 16px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;
+  }
+  .cart-head .t{font-size:15px;font-weight:600;letter-spacing:.06em}
+  .cart-head .c{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .cart-head .clear{
+    border:0;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;
+    font-family:inherit;padding:2px 0 2px 8px;
+  }
+  .cart-head .clear:hover{color:var(--red)}
+  .cart-list{overflow:auto;padding:6px 0;flex:1;min-height:80px}
+  .ci{
+    display:flex;gap:10px;align-items:flex-start;padding:10px 16px;
+  }
+  .ci + .ci{border-top:1px dashed #ece1cf}
+  .ci .nm{font-size:13.5px;font-weight:500;line-height:1.4}
+  .ci .pp{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .ci .qty{margin-left:auto;flex:0 0 auto;height:26px}
+  .ci .qty button{width:24px;height:24px;font-size:14px}
+  .ci .qty span{min-width:18px;font-size:12.5px}
+  .ci .sum{
+    flex:0 0 auto;font-family:"Songti SC","SimSun",serif;color:var(--red);
+    font-size:14px;width:52px;text-align:right;padding-top:2px;
+  }
+  .cart-empty{padding:34px 16px;text-align:center;color:#b4a898;font-size:13px;line-height:1.8}
+
+  .cart-foot{border-top:1px solid var(--line);padding:13px 16px 15px}
+  .row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+  .row .v{font-variant-numeric:tabular-nums}
+  .row.save{color:var(--red)}
+  .total{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0 12px}
+  .total .lbl{font-size:13px;color:var(--muted)}
+  .total .amt{font-family:"Songti SC","SimSun",serif;font-size:27px;color:var(--red);font-weight:600}
+  .total .amt small{font-size:14px;margin-right:2px}
+  .submit{
+    width:100%;height:44px;border:0;border-radius:9px;background:var(--red);color:#fff;
+    font-size:15px;letter-spacing:.16em;cursor:pointer;font-family:inherit;
+    transition:background .2s ease, transform .12s ease;
+  }
+  .submit:hover:not(:disabled){background:#9f2b22}
+  .submit:active:not(:disabled){transform:scale(.99)}
+  .submit:disabled{background:#d9cfc0;cursor:not-allowed;letter-spacing:.12em}
+  .hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.6}
+
+  /* ---------- 移动端结算条 ---------- */
+  .mobile-bar{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--card);border-top:1px solid var(--line);
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    align-items:center;gap:14px;box-shadow:0 -12px 24px -20px rgba(54,40,24,.7);
+  }
+  .mobile-bar .info{min-width:0}
+  .mobile-bar .amt{font-family:"Songti SC","SimSun",serif;font-size:22px;color:var(--red);font-weight:600;line-height:1.2}
+  .mobile-bar .amt small{font-size:12px;margin-right:1px}
+  .mobile-bar .q{font-size:11.5px;color:var(--muted)}
+  .mobile-bar .submit{width:auto;flex:0 0 132px;height:42px;margin-left:auto}
+
+  /* ---------- 弹层 ---------- */
+  .mask{
+    position:fixed;inset:0;background:rgba(36,31,26,.42);z-index:60;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .mask.on{display:flex}
+  .modal{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    width:100%;max-width:430px;max-height:86vh;overflow:auto;
+    box-shadow:0 30px 60px -30px rgba(20,14,6,.6);
+  }
+  .modal-head{padding:20px 22px 14px;border-bottom:1px solid var(--line)}
+  .modal-head .k{font-size:11.5px;letter-spacing:.2em;color:var(--muted)}
+  .modal-head .t{font-size:21px;font-weight:600;margin-top:7px;letter-spacing:.04em}
+  .modal-head .d{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .modal-body{padding:14px 22px}
+  .mi{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;padding:5px 0}
+  .mi .n{color:var(--ink-soft)}
+  .mi .n b{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
+  .mi .v{font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .modal-foot{border-top:1px solid var(--line);padding:14px 22px 18px}
+  .modal-total{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+  .modal-total .amt{font-family:"Songti SC","SimSun",serif;font-size:24px;color:var(--red);font-weight:600}
+  .modal-total .amt small{font-size:13px;margin-right:2px}
+  .ok{
+    width:100%;height:42px;border:0;border-radius:9px;background:var(--ink);color:#f9f4ea;
+    font-family:inherit;font-size:14px;letter-spacing:.14em;cursor:pointer;
+  }
+  .ok:hover{background:#3a3128}
+  .code{
+    display:inline-block;padding:2px 8px;border:1px dashed #cbbca6;border-radius:5px;
+    font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--ink-soft);letter-spacing:.06em;
+  }
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:78px;transform:translate(-50%,14px);
+    background:var(--ink);color:#f9f4ea;font-size:13px;padding:9px 16px;border-radius:999px;
+    z-index:80;opacity:0;pointer-events:none;transition:all .24s ease;white-space:nowrap;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width:1080px){
+    .shell{grid-template-columns:132px minmax(0,1fr) 300px;gap:20px}
+  }
+  @media (max-width:940px){
+    .shell{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 14px 110px}
+    .rail{position:static;flex-direction:row;overflow-x:auto;gap:8px;padding-bottom:4px;order:-1}
+    .rail h3{display:none}
+    .cat{flex:0 0 auto;padding:8px 14px;border:1px solid var(--line);background:var(--card)}
+    .cat .n{display:none}
+    .cat.on{background:var(--ink);color:#f9f4ea;border-color:var(--ink)}
+    .cat.on .n{color:#f9f4ea}
+    .cart{display:none}
+    .mobile-bar{display:flex}
+    .content-head .h{font-size:22px}
+    .grid{grid-template-columns:minmax(0,1fr)}
+    .bar{padding:11px 14px;gap:10px}
+    .brand .name{font-size:19px}
+    .brand .sub{display:none}
+    .table-chip{padding:6px 10px;font-size:12px}
+    .cart-btn{padding:8px 12px;font-size:13px}
+    .cart-btn .lbl{display:none}
+  }
+  @media (max-width:520px){
+    .notice-in{font-size:12px;gap:8px 14px}
+    .search{min-width:0;flex:1 1 100%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#b8342a"/>
+        <path d="M7 19c0-5 4-9 9-9s9 4 9 9" stroke="#f6f1e6" stroke-width="2.2" fill="none"/>
+        <path d="M5 22h22" stroke="#f6f1e6" stroke-width="2.2"/>
+        <path d="M23 12c1.6-1.4 1.4-3.4.4-4.2" stroke="#f6f1e6" stroke-width="1.4" fill="none"/>
+      </svg>
+      <div>
+        <div class="name serif">灶间小馆</div>
+        <div class="sub">SINCE 1998 · 家常本帮菜</div>
+      </div>
+    </div>
+    <div class="bar-spacer"></div>
+    <div class="table-chip"><span>桌号</span><b class="serif">A12</b><span style="color:var(--muted)">· 2 人</span></div>
+    <button class="cart-btn" id="openCart" type="button" aria-label="查看已点菜品">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+        <path d="M3 4h2.2l2.3 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>
+        <circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/>
+      </svg>
+      <span class="lbl">已点</span>
+      <span class="badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="notice">
+  <div class="notice-in">
+    <span><i class="dot"></i>营业 11:00 – 21:30</span>
+    <span><i class="dot"></i>满 200 减 20 · 满 300 减 40</span>
+    <span><i class="dot"></i>现点现做，出餐约 25 分钟</span>
+  </div>
+</div>
+
+<main class="shell">
+  <!-- 分类 -->
+  <nav class="rail" id="rail" aria-label="菜品分类">
+    <h3>菜 单</h3>
+  </nav>
+
+  <!-- 菜品 -->
+  <section class="content">
+    <div class="content-head">
+      <div class="h serif" id="catTitle">全部菜品<em id="catSub">共 23 道 · 选好后点击右下角下单</em></div>
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b4a898" stroke-width="1.8" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20 20"/>
+        </svg>
+        <input id="q" type="search" placeholder="搜菜名 / 口味" aria-label="搜索菜品">
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- 购物车 -->
+  <aside class="cart" aria-label="已点菜品">
+    <div class="cart-head">
+      <span class="t serif">已点</span>
+      <span class="c" id="cartCount">0 道</span>
+      <button class="clear" id="clearCart" type="button">清空</button>
+    </div>
+    <div class="cart-list" id="cartList"></div>
+    <div class="cart-foot">
+      <div class="row"><span>菜品小计</span><span class="v" id="subtotal">¥0</span></div>
+      <div class="row save" id="saveRow" hidden><span>满减优惠</span><span class="v" id="discount">-¥0</span></div>
+      <div class="total">
+        <span class="lbl">合计</span>
+        <span class="amt"><small>¥</small><span id="total">0</span></span>
+      </div>
+      <button class="submit" id="submit" type="button" disabled>确认下单</button>
+      <p class="hint" id="hint">再点 ¥200 可减 ¥20</p>
+    </div>
+  </aside>
+</main>
+
+<!-- 移动端底部结算 -->
+<div class="mobile-bar">
+  <div class="info">
+    <div class="amt"><small>¥</small><span id="mTotal">0</span></div>
+    <div class="q" id="mQty">未点菜</div>
+  </div>
+  <button class="submit" id="mSubmit" type="button" disabled>下单</button>
+</div>
+
+<!-- 订单确认弹层 -->
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="k serif" id="dlgKicker">订单确认</div>
+      <div class="t serif" id="dlgTitle">请核对菜品</div>
+      <div class="d" id="dlgDesc">桌号 A12 · 下单后不可取消</div>
+    </div>
+    <div class="modal-body" id="dlgBody"></div>
+    <div class="modal-foot">
+      <div class="modal-total">
+        <span class="lbl" style="font-size:13px;color:var(--muted)">应付</span>
+        <span class="amt"><small>¥</small><span id="dlgTotal">0</span></span>
+      </div>
+      <button class="ok" id="confirm" type="button">提交订单</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 菜品数据 ===== */
+const CATS = [
+  { id:'all',    name:'全部菜品' },
+  { id:'hot',    name:'招牌热菜' },
+  { id:'stir',   name:'时令小炒' },
+  { id:'staple', name:'汤羹主食' },
+  { id:'drink',  name:'饮品甜点' }
+];
+
+const DISHES = [
+  { id:1,  cat:'hot', name:'灶火砂锅鸡', price:68, spicy:2, badge:'招牌', desc:'老砂锅慢煨三小时，鸡腿肉一抿脱骨，汤头浓而不腻。' },
+  { id:2,  cat:'hot', name:'焦香五花肉', price:52, spicy:0, desc:'先卤后煸，外皮起酥，配现烙荷叶饼一卷。' },
+  { id:3,  cat:'hot', name:'干锅牛蛙',   price:88, spicy:3, badge:'招牌', desc:'青红椒与紫苏同炒，蛙肉紧实弹牙，越吃越上头。' },
+  { id:4,  cat:'hot', name:'蒜香排骨',   price:58, spicy:0, desc:'蒜末裹匀低温炸透，肉汁锁在里面。' },
+  { id:5,  cat:'hot', name:'樟茶鸭',     price:78, spicy:0, badge:'招牌', desc:'腌、熏、蒸、炸四道工序，皮脆肉嫩带茶香。' },
+  { id:6,  cat:'hot', name:'麻婆豆腐',   price:32, spicy:2, veg:true, desc:'郫县豆瓣配汉源花椒，嫩豆腐麻香入味。' },
+
+  { id:7,  cat:'stir', name:'手撕包菜',   price:26, spicy:0, desc:'手撕不切，铁锅爆炒，脆甜带一点锅气。' },
+  { id:8,  cat:'stir', name:'蒜蓉空心菜', price:24, spicy:0, veg:true, desc:'大火快炒三十秒，断生即起锅，保持翠绿。' },
+  { id:9,  cat:'stir', name:'干煸四季豆', price:28, spicy:1, desc:'煸到起皱，配肉末与芽菜，干香下饭。' },
+  { id:10, cat:'stir', name:'农家小炒肉', price:42, spicy:2, badge:'招牌', desc:'螺丝椒配前腿肉，猛火翻炒，辣得直接。' },
+  { id:11, cat:'stir', name:'清炒时蔬',   price:22, spicy:0, veg:true, desc:'每日市集选的当季绿叶菜，只放盐与蒜。' },
+  { id:12, cat:'stir', name:'凉拌木耳',   price:20, spicy:1, veg:true, desc:'东北秋木耳，醋香打底，口感爽脆。' },
+
+  { id:13, cat:'staple', name:'老火例汤',   price:18, spicy:0, desc:'每日更换一款，猪骨与老鸡吊足四小时。' },
+  { id:14, cat:'staple', name:'番茄蛋花汤', price:22, spicy:0, veg:true, desc:'番茄炒出沙，蛋花细如棉絮。' },
+  { id:15, cat:'staple', name:'腊味煲仔饭', price:38, spicy:0, badge:'招牌', desc:'砂锅现焖，锅底一层金黄饭焦，淋豉油。' },
+  { id:16, cat:'staple', name:'手工银丝面', price:26, spicy:1, desc:'细面配红油与芽菜，汤宽面弹。' },
+  { id:17, cat:'staple', name:'葱油拌面',   price:22, spicy:0, desc:'小葱熬到焦香，拌开每根面都裹油。' },
+  { id:18, cat:'staple', name:'虾仁蛋炒饭', price:32, spicy:0, desc:'隔夜米粒粒分明，虾仁弹口。' },
+
+  { id:19, cat:'drink', name:'冰镇酸梅汤', price:12, spicy:0, badge:'招牌', desc:'乌梅山楂陈皮同煮，冰镇后微酸回甘。' },
+  { id:20, cat:'drink', name:'陈皮红豆沙', price:14, spicy:0, desc:'红豆煮到起沙，十年陈皮收尾。' },
+  { id:21, cat:'drink', name:'桂花米酒',   price:16, spicy:0, desc:'糯米自酿，桂花香浓，甜度低。' },
+  { id:22, cat:'drink', name:'明前龙井',   price:18, spicy:0, desc:'一壶两泡，豆香清亮。' },
+  { id:23, cat:'drink', name:'气泡柠檬茶', price:16, spicy:0, desc:'手打柠檬加苏打，解辣最合适。' }
+];
+
+/* ===== 状态 ===== */
+const state = {
+  cat:'all',
+  q:'',
+  cart:{},          // { id: qty }
+  mode:'cart'       // cart | done
+};
+
+/* ===== 工具 ===== */
+const $ = s => document.querySelector(s);
+const money = n => '¥' + n.toLocaleString('zh-CN');
+const dishById = id => DISHES.find(d => d.id === Number(id));
+
+const ICONS = {
+  hot: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8342a" stroke-width="1.5"><path d="M4 11h16a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6Z" fill="#f2e2dd"/><path d="M8 7c0-1.4 1-2 1-3M13 7c0-1.4 1-2 1-3"/></svg>',
+  stir: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f6b46" stroke-width="1.5"><path d="M12 20V10" /><path d="M12 10c-3 0-5-2-5-5 3 0 5 2 5 5Z"/><path d="M12 13c3 0 5-2 5-5-3 0-5 2-5 5Z" fill="#edf2e9"/></svg>',
+  staple: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a97c2f" stroke-width="1.5"><ellipse cx="12" cy="12" rx="8" ry="5" fill="#f5ecd8"/><path d="M8 10c2 1.6 6 1.6 8 0"/></svg>',
+  drink: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b6258" stroke-width="1.5"><path d="M7 5h10l-1.2 14H8.2L7 5Z" fill="#efe7d7"/><path d="M9 9h6"/></svg>'
+};
+
+const CHILI = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b8342a" stroke-width="2" aria-hidden="true"><path d="M14 5c0 6-2 12-8 14M14 5c2 0 4-1 4-2"/></svg>';
+
+/* ===== 分类渲染 ===== */
+function renderRail(){
+  const rail = $('#rail');
+  rail.querySelectorAll('.cat').forEach(n => n.remove());
+  CATS.forEach(c => {
+    const n = c.id === 'all' ? DISHES.length : DISHES.filter(d => d.cat === c.id).length;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cat' + (state.cat === c.id ? ' on' : '');
+    btn.innerHTML = '<span>' + c.name + '</span><span class="n">' + n + '</span>';
+    btn.addEventListener('click', () => { state.cat = c.id; renderRail(); renderGrid(); renderTitle(); });
+    rail.appendChild(btn);
+  });
+}
+
+function renderTitle(){
+  const c = CATS.find(x => x.id === state.cat);
+  const n = filtered().length;
+  $('#catTitle').innerHTML = c.name + '<em>' + (state.q ? '搜索「' + state.q + '」· ' : '共 ') + n + ' 道' + (state.q ? '' : ' · 现点现做，出餐约 25 分钟') + '</em>';
+}
+
+/* ===== 过滤 ===== */
+function filtered(){
+  const q = state.q.trim().toLowerCase();
+  return DISHES.filter(d => {
+    if (state.cat !== 'all' && d.cat !== state.cat) return false;
+    if (!q) return true;
+    return (d.name + ' ' + d.desc + ' ' + (d.badge || '')).toLowerCase().includes(q);
+  });
+}
+
+/* ===== 菜品渲染 ===== */
+function renderGrid(){
+  const grid = $('#grid');
+  const list = filtered();
+  if (!list.length){
+    grid.innerHTML = '<div class="empty">没有找到相关菜品，换个关键词试试</div>';
+    return;
+  }
+  grid.innerHTML = list.map(d => {
+    const qty = state.cart[d.id] || 0;
+    const tags = [];
+    if (d.badge) tags.push('<span class="tag hot">' + d.badge + '</span>');
+    if (d.veg) tags.push('<span class="tag veg">素食</span>');
+    if (d.spicy > 0) tags.push('<span class="tag" style="display:inline-flex;align-items:center;gap:1px">' + CHILI.repeat(d.spicy) + '</span>');
+    tags.push('<span class="tag">' + (CATS.find(c => c.id === d.cat) || {}).name?.replace('菜品','').replace('招牌','') + '</span>');
+    return '<article class="dish' + (qty ? ' in-cart' : '') + '" data-id="' + d.id + '">' +
+      '<div class="dish-top">' +
+        '<div class="thumb">' + ICONS[d.cat] + '</div>' +
+        '<div style="min-width:0;flex:1">' +
+          '<div class="dish-name">' + d.name + '</div>' +
+          '<div class="dish-tags">' + tags.join('') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="dish-desc">' + d.desc + '</div>' +
+      '<div class="dish-foot">' +
+        '<div class="price"><small>¥</small><span class="serif">' + d.price + '</span><i>/份</i></div>' +
+        '<div class="act" data-act="' + d.id + '">' + actHTML(d.id, qty) + '</div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+}
+
+function actHTML(id, qty){
+  if (!qty) return '<button class="add" data-add="' + id + '" type="button">加入</button>';
+  return '<div class="qty">' +
+    '<button data-dec="' + id + '" type="button" aria-label="减少">−</button>' +
+    '<span>' + qty + '</span>' +
+    '<button data-add="' + id + '" type="button" aria-label="增加">+</button>' +
+  '</div>';
+}
+
+/* ===== 购物车逻辑 ===== */
+function count(){
+  return Object.values(state.cart).reduce((a, b) => a + b, 0);
+}
+function subtotal(){
+  return Object.entries(state.cart).reduce((s, [id, q]) => s + dishById(id).price * q, 0);
+}
+function discount(){
+  const s = subtotal();
+  if (s >= 300) return 40;
+  if (s >= 200) return 20;
+  return 0;
+}
+function total(){
+  return Math.max(0, subtotal() - discount());
+}
+
+function add(id){
+  state.cart[id] = (state.cart[id] || 0) + 1;
+  after();
+  const d = dishById(id);
+  toast('已加入 ' + d.name);
+}
+function dec(id){
+  if (!state.cart[id]) return;
+  state.cart[id]--;
+  if (!state.cart[id]) delete state.cart[id];
+  after();
+}
+
+function after(){
+  renderGrid();
+  renderCart();
+}
+
+function renderCart(){
+  const badge = count();
+  $('#cartBadge').textContent = badge;
+  $('#cartCount').textContent = badge + ' 道';
+  $('#cartBadge').style.background = badge ? 'var(--red)' : 'rgba(255,255,255,.25)';
+
+  const list = $('#cartList');
+  const items = Object.entries(state.cart);
+  if (!items.length){
+    list.innerHTML = '<div class="cart-empty">还没有点菜<br><span style="font-size:12px;color:#c3b6a4">从左边菜单挑几道招牌试试</span></div>';
+  } else {
+    list.innerHTML = items.map(([id, qty]) => {
+      const d = dishById(id);
+      return '<div class="ci">' +
+        '<div style="min-width:0;flex:1">' +
+          '<div class="nm">' + d.name + '</div>' +
+          '<div class="pp">' + money(d.price) + ' / 份</div>' +
+        '</div>' +
+        '<div class="qty">' +
+          '<button data-dec="' + id + '" type="button" aria-label="减少">−</button>' +
+          '<span>' + qty + '</span>' +
+          '<button data-add="' + id + '" type="button" aria-label="增加">+</button>' +
+        '</div>' +
+        '<div class="sum">' + (d.price * qty) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const sub = subtotal(), dis = discount(), tot = total();
+  $('#subtotal').textContent = money(sub);
+  $('#discount').textContent = '-' + money(dis);
+  $('#saveRow').hidden = dis === 0;
+  $('#total').textContent = tot.toLocaleString('zh-CN');
+  $('#mTotal').textContent = tot.toLocaleString('zh-CN');
+  $('#mQty').textContent = badge ? ('已点 ' + badge + ' 道') : '未点菜';
+
+  const can = badge > 0;
+  ['#submit', '#mSubmit'].forEach(s => { $(s).disabled = !can; });
+
+  const gap = 200 - sub;
+  $('#hint').textContent = !badge ? '满 200 减 20，满 300 减 40'
+    : gap > 0 ? ('再点 ' + money(gap) + ' 可减 ¥20')
+    : sub < 300 ? ('已减 ¥20，再点 ' + money(300 - sub) + ' 可减 ¥40')
+    : '已享满 300 减 40';
+}
+
+/* ===== 下单 ===== */
+function openDialog(mode){
+  state.mode = mode || 'cart';
+  const mask = $('#mask');
+  const body = $('#dlgBody');
+  if (state.mode === 'done'){
+    $('#dlgKicker').textContent = '下单成功';
+    $('#dlgTitle').textContent = '后厨已收到';
+    $('#dlgDesc').innerHTML = '订单号 <span class="code">' + window.__orderNo + '</span> · 出餐约 25 分钟';
+    body.innerHTML = window.__orderHTML;
+    $('#confirm').textContent = '返回菜单继续点';
+    $('#dlgTotal').textContent = (window.__orderTotal || 0).toLocaleString('zh-CN');
+    $('.modal-total .lbl').textContent = '已下单';
+  } else {
+    $('#dlgKicker').textContent = '订单确认';
+    $('#dlgTitle').textContent = '请核对菜品';
+    $('#dlgDesc').textContent = '桌号 A12 · 提交后请勿离席';
+    const items = Object.entries(state.cart);
+    body.innerHTML = items.map(([id, q]) => {
+      const d = dishById(id);
+      return '<div class="mi"><span class="n">' + d.name + '<b>×' + q + '</b></span><span class="v">' + money(d.price * q) + '</span></div>';
+    }).join('') +
+      '<div class="mi" style="border-top:1px dashed #e8dcc8;margin-top:8px;padding-top:10px">' +
+      '<span class="n">菜品小计</span><span class="v">' + money(subtotal()) + '</span></div>' +
+      (discount() ? '<div class="mi"><span class="n">满减优惠</span><span class="v" style="color:var(--red)">-' + money(discount()) + '</span></div>' : '');
+    $('#confirm').textContent = '提交订单';
+    $('#dlgTotal').textContent = total().toLocaleString('zh-CN');
+    $('.modal-total .lbl').textContent = '应付';
+  }
+  mask.classList.add('on');
+}
+
+function closeDialog(){ $('#mask').classList.remove('on'); }
+
+function submitOrder(){
+  window.__orderNo = 'ZJ' + String(Date.now()).slice(-6);
+  window.__orderTotal = total();
+  window.__orderHTML = Object.entries(state.cart).map(([id, q]) => {
+    const d = dishById(id);
+    return '<div class="mi"><span class="n">' + d.name + '<b>×' + q + '</b></span><span class="v">' + money(d.price * q) + '</span></div>';
+  }).join('');
+  state.cart = {};
+  renderCart(); renderGrid();
+  openDialog('done');
+}
+
+/* ===== toast ===== */
+let toastTimer = null;
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 1600);
+}
+
+/* ===== 事件委托 ===== */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-add],[data-dec]');
+  if (el){
+    if (el.dataset.add) add(el.dataset.add);
+    else dec(el.dataset.dec);
+    return;
+  }
+  if (e.target.closest('#clearCart')){
+    if (count()){ state.cart = {}; after(); toast('已清空'); }
+    return;
+  }
+  if (e.target.closest('#submit, #mSubmit')){
+    if (count()) openDialog('cart');
+    return;
+  }
+  if (e.target.closest('#confirm')){
+    if (state.mode === 'done'){ closeDialog(); toast('还可以继续加菜'); }
+    else submitOrder();
+    return;
+  }
+  if (e.target.closest('#openCart')){
+    if (!count()){ toast('还没有点菜'); return; }
+    openDialog('cart');
+    return;
+  }
+  if (e.target === $('#mask')) closeDialog();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDialog();
+});
+
+$('#q').addEventListener('input', e => {
+  state.q = e.target.value;
+  renderGrid(); renderTitle();
+});
+
+/* ===== 初始化 ===== */
+renderRail();
+renderGrid();
+renderTitle();
+renderCart();
+</script>
+</body>
+</html>
